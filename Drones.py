@@ -1,0 +1,5 @@
+me = tello.Tello()
+me.connect()
+me.takeoff()
+sleep()
+me.move_forward()
