@@ -1,13 +1,9 @@
 import djitellopy
 import pygame
 import threading
-<<<<<<< HEAD
 import cv2
-# Initializing
-=======
 import time
-import cv2
->>>>>>> 36e5613aa1b6f9ec7e5888e9cdb7a0f5144a9567
+# Initializing
 pygame.init()
 screen = pygame.display.set_mode((600,400))
 # Movement
@@ -16,11 +12,7 @@ leftright = 0
 forwardback = 0
 rotation = 0
 takeoff = 0
-<<<<<<< HEAD
 # Connect
-=======
-cameraoff = 0
->>>>>>> 36e5613aa1b6f9ec7e5888e9cdb7a0f5144a9567
 me = djitellopy.Tello()
 me.connect()
 me.streamon()
