@@ -16,7 +16,6 @@ takeoff = 0
 me = djitellopy.Tello()
 me.connect()
 me.streamon()
-me.takeoff()
 # Movement Function
 def moving():
     while True:
@@ -40,8 +39,6 @@ while True:
             if (e.key == pygame.K_SPACE):
                 me.land()
                 quit()
-            if(e.key == pygame.K_t):
-                takeoff
             elif (e.key == pygame.K_a):
                 leftright = -25
             elif(e.key ==pygame.K_d):
