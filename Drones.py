@@ -1,7 +1,6 @@
 import djitellopy
 import pygame
 import threading
-import time
 pygame.init()
 screen = pygame.display.set_mode((600,400))
 updown = 0
