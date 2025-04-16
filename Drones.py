@@ -2,6 +2,7 @@ import djitellopy
 import pygame
 import threading
 import time
+import cv2
 pygame.init()
 screen = pygame.display.set_mode((600,400))
 updown = 0
@@ -9,6 +10,7 @@ leftright = 0
 forwardback = 0
 rotation = 0
 takeoff = 0
+cameraoff = 0
 me = djitellopy.Tello()
 me.connect()
 me.takeoff()
@@ -59,3 +61,4 @@ while True:
                 forwardback = 0
              elif(e.key == pygame.K_l):
                 rotation = 0
+                
