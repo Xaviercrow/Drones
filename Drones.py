@@ -11,7 +11,6 @@ updown = 0
 leftright = 0
 forwardback = 0
 rotation = 0
-takeoff = 0
 # Connect
 me = djitellopy.Tello()
 me.connect()
@@ -31,7 +30,10 @@ def show_camera():
     cv2.destroyAllWindows()
 # Start Threads
 movingthread = threading.Thread(target= moving)
+camera_thread = threading.Thread(target=show_camera)
+
 movingthread.start()
+camera_thread.start()
 # Main Loop
 while True:
     for e in pygame.event.get():
@@ -39,6 +41,11 @@ while True:
             if (e.key == pygame.K_SPACE):
                 me.land()
                 quit()
+<<<<<<< HEAD
+=======
+            if(e.key == pygame.K_t):
+                me.takeoff
+>>>>>>> b13d9de4ac663abec5d37440e87e37e43560b7fd
             elif (e.key == pygame.K_a):
                 leftright = -25
             elif(e.key ==pygame.K_d):
@@ -54,7 +61,7 @@ while True:
             elif(e.key == pygame.K_l):
                 rotation = 75
             elif(e.key == pygame.K_BACKSPACE):
-                me.emergency
+                me.emergency()
         if e.type == pygame.KEYUP:
              if (e.key == pygame.K_SPACE):
                 me.land()
