@@ -15,6 +15,7 @@ rotation = 0
 me = djitellopy.Tello()
 me.connect()
 me.streamon()
+me.takeoff()
 # Movement Function
 def moving():
     while True:
