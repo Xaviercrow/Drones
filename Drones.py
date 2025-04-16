@@ -41,11 +41,9 @@ while True:
             if (e.key == pygame.K_SPACE):
                 me.land()
                 quit()
-<<<<<<< HEAD
-=======
+
             if(e.key == pygame.K_t):
                 me.takeoff
->>>>>>> b13d9de4ac663abec5d37440e87e37e43560b7fd
             elif (e.key == pygame.K_a):
                 leftright = -25
             elif(e.key ==pygame.K_d):
