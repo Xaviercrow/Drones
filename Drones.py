@@ -39,11 +39,11 @@ camera_thread.start()
 while True:
     for e in pygame.event.get():
         if e.type == pygame.KEYDOWN:
-            if (e.key == pygame.K_SPACE):
+            if e.key == pygame.K_SPACE:
                 me.land()
                 quit()
-            if(e.key == pygame.K_t):
-                me.takeoff
+            elif e.key == pygame.K_t:
+                me.takeoff() 
             elif (e.key == pygame.K_a):
                 leftright = -25
             elif(e.key ==pygame.K_d):
