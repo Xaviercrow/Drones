@@ -25,6 +25,7 @@ def moving():
 # Camera Function 
 def show_camera():
     global running
+    saved_colors = set()
     while running:
         frame = me.get_frame_read().frame
         img = cv2.resize(frame, (600, 400))
@@ -38,6 +39,9 @@ def show_camera():
             "Blue": [((100, 150, 0), (140, 255, 255))],
             "Purple": [((140, 100, 100), (160, 255, 255))]
         }
+
+        detected_ring_color = None
+
         for color, ranges in color_ranges.items():
             mask = None
             for lower, upper in ranges:
@@ -46,21 +50,19 @@ def show_camera():
                 else:
                     mask |= cv2.inRange(hsv, lower, upper)
 
-            contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+            center_mask = mask[100:300, 200:400]
+            contours, _ = cv2.findContours(center_mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+           
             for cnt in contours:
                 area = cv2.contourArea(cnt)
-                if area > 500:  # Filter small areas
-                    x, y, w, h = cv2.boundingRect(cnt)
-                    color_bgr = {
-                        "Red": (0, 0, 255),
-                        "Orange": (0, 165, 255),
-                        "Yellow": (0, 255, 255),
-                        "Green": (0, 255, 0),
-                        "Blue": (255, 0, 0),
-                        "Purple": (255, 0, 255)
-                    }[color]
-                    cv2.rectangle(frame, (x, y), (x + w, y + h), color_bgr, 2)
-                    cv2.putText(frame, f"{color} Object", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color_bgr, 2)
+                if area > 1000:  
+                    detected_ring_color = color 
+# File Saving
+                    if detected_ring_color and detected_ring_color not in saved_colors:
+                        print(f"Detected Ring Color: {detected_ring_color}")
+                        with open("colors.txt", "a") as f:
+                            f.write(f"{detected_ring_color}\n")
+                        saved_colors.add(detected_ring_color)
         cv2.imshow("Tello Camera", img)
         if cv2.waitKey(1) & 0xFF == ord('x'):
             running = False
