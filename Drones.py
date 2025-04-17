@@ -42,15 +42,11 @@ camera_thread.start()
 # Main Loop
 while True:
     for e in pygame.event.get():
-        if e.type == pygame.K_SHIFT:
-            running = False
-            me.land()
-            break
-            
         if e.type == pygame.KEYDOWN:
-            if e.key == pygame.K_SPACE:
+            if e.key == pygame.K_SHIFT:
+                running = False
                 me.land()
-                quit()
+                break
             elif e.key == pygame.K_t:
                 me.takeoff() 
             elif (e.key == pygame.K_a):
