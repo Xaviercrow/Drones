@@ -27,9 +27,10 @@ def moving():
         me.send_rc_control(leftright, forwardback, updown, rotation)
         time.sleep(0.05)
 
-# Camera Function
+# Camera Function 
 def show_camera():
     global running
+    detected_ring_color = None
     saved_colors = set()
 
     while running:
@@ -57,39 +58,31 @@ def show_camera():
                 else:
                     mask |= cv2.inRange(hsv, lower, upper)
 
-            center_mask = mask[100:300, 200:400]
-            contours, _ = cv2.findContours(center_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            # Find contours in the mask to detect rings
+            contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
             for cnt in contours:
                 area = cv2.contourArea(cnt)
-                perimeter = cv2.arcLength(cnt, True)
-
-                if perimeter == 0:
-                    continue
-
-                circularity = 4 * 3.1416 * (area / (perimeter * perimeter))
-                if circularity > 0.7 and area > 1000:
+                if area > 1000:  # Ignore small contours
                     detected_ring_color = color
+                    # Draw a bounding box around the detected color
+                    x, y, w, h = cv2.boundingRect(cnt)
+                    cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
-                    if detected_ring_color not in saved_colors:
-                        print(f"Detected Ring Color: {detected_ring_color}")
-                        with open("colors.txt", "a") as f:
-                            f.write(f"{detected_ring_color}\n")
-                        saved_colors.add(detected_ring_color)
-
-                    # Display text on camera feed
+                    # Write the color name inside the bounding box
                     cv2.putText(
                         img,
-                        f"Detected: {detected_ring_color}",
-                        (20, 50),
+                        f"{detected_ring_color}",
+                        (x + 5, y - 5),
                         cv2.FONT_HERSHEY_SIMPLEX,
-                        1,
+                        0.8,
                         (255, 255, 255),
                         2,
                         cv2.LINE_AA
                     )
-                    break
+                    break  # Only show one color at a time
 
+        # Show the camera feed
         cv2.imshow("Tello Camera", img)
 
         if cv2.waitKey(1) & 0xFF == ord('x'):
@@ -97,6 +90,14 @@ def show_camera():
             break
 
     cv2.destroyAllWindows()
+
+# Keybind to save color to file
+def save_color_to_file(detected_ring_color, saved_colors):
+    if detected_ring_color and detected_ring_color not in saved_colors:
+        print(f"Detected Ring Color: {detected_ring_color}")
+        with open("colors.txt", "a") as f:
+            f.write(f"{detected_ring_color}\n")
+        saved_colors.add(detected_ring_color)
 
 # Start Threads
 moving_thread = threading.Thread(target=moving)
@@ -133,6 +134,10 @@ while True:
                 me.emergency()
             elif e.key == pygame.K_f:
                 me.flip_forward()
+
+            # Check for color save key (e.g., 'p' for save)
+            elif e.key == pygame.K_p:  # 'p' key to save the detected color
+                save_color_to_file(detected_ring_color, saved_colors)
 
         elif e.type == pygame.KEYUP:
             if e.key == pygame.K_LSHIFT:
