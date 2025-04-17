@@ -11,21 +11,26 @@ updown = 0
 leftright = 0
 forwardback = 0
 rotation = 0
+running = True
 # Connect
 me = djitellopy.Tello()
 me.connect()
 me.streamon()
-# Movement Function
+# Movement Thread
 def moving():
-    while True:
+    global running
+    while running:
         me.send_rc_control(leftright, forwardback, updown, rotation)
+        time.sleep(0.05)
 # Camera Function 
 def show_camera():
-    while True:
+    global running
+    while running:
         frame = me.get_frame_read().frame
         img = cv2.resize(frame, (600, 400))
         cv2.imshow("Tello Camera", img)
         if cv2.waitKey(1) & 0xFF == ord('x'):
+            running = False
             break
     cv2.destroyAllWindows()
 # Start Threads
@@ -37,6 +42,11 @@ camera_thread.start()
 # Main Loop
 while True:
     for e in pygame.event.get():
+        if e.type == pygame.K_SHIFT:
+            running = False
+            me.land()
+            break
+            
         if e.type == pygame.KEYDOWN:
             if e.key == pygame.K_SPACE:
                 me.land()
