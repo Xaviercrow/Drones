@@ -16,6 +16,7 @@ running = True
 me = djitellopy.Tello()
 me.connect()
 me.streamon()
+
 # Movement Thread
 def moving():
     global running
@@ -43,11 +44,11 @@ camera_thread.start()
 while True:
     for e in pygame.event.get():
         if e.type == pygame.KEYDOWN:
-            if e.key == pygame.K_SHIFT:
+            if (e.key == pygame.K_LSHIFT):
                 running = False
                 me.land()
                 break
-            elif e.key == pygame.K_t:
+            elif (e.key == pygame.K_t):
                 me.takeoff() 
             elif (e.key == pygame.K_a):
                 leftright = -25
@@ -65,8 +66,10 @@ while True:
                 rotation = 75
             elif(e.key == pygame.K_BACKSPACE):
                 me.emergency()
+            elif(e.key == pygame.K_f):
+                me.flip_forward()
         if e.type == pygame.KEYUP:
-             if (e.key == pygame.K_SPACE):
+             if (e.key == pygame.K_LSHIFT):
                 me.land()
                 quit()
              elif (e.key == pygame.K_a):
