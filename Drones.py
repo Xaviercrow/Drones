@@ -19,6 +19,7 @@ running = True
 detected_ring_color = None
 flash_message = ""
 flash_start_time = 0
+saved_colors = set()
 
 # Connect to Tello drone
 me = djitellopy.Tello()
@@ -52,7 +53,6 @@ def show_camera():
         }
 
         detected_ring_color = None
-        mask_total = None
         output = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         output = cv2.cvtColor(output, cv2.COLOR_GRAY2BGR)
 
@@ -74,8 +74,10 @@ def show_camera():
 
                     if 0.5 < aspect_ratio < 2.0:
                         detected_ring_color = color
-                        roi = cv2.bitwise_and(img, img, mask=mask)
-                        output = cv2.bitwise_or(output, roi)
+                        muted = cv2.bitwise_and(output, output, mask=cv2.bitwise_not(mask))  # black & white
+                        highlight = cv2.bitwise_and(img, img, mask=mask)                      # color
+                        output = cv2.add(muted, highlight)  # Merge
+
                         cv2.rectangle(output, (x, y), (x + w, y + h), (0, 255, 0), 2)
                         cv2.putText(output, f"{detected_ring_color}", (x + 5, y - 5),
                                     cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
@@ -85,11 +87,11 @@ def show_camera():
 
         # Flash overlay
         if flash_message:
-            if flash_message and (time.time() - flash_start_time < 1.5):
+            if time.time() - flash_start_time < 1.5:
                 cv2.putText(output, flash_message, (150, 50),
-                cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 255, 0), 3)
+                            cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 255, 0), 3)
             else:
-                    flash_message = ""
+                flash_message = ""
 
         cv2.imshow("Tello Camera", output)
 
@@ -100,8 +102,9 @@ def show_camera():
     cv2.destroyAllWindows()
 
 # Save color
-def save_color_to_file(detected_ring_color, saved_colors):
-    global flash_message, flash_start_time
+def save_color_to_file(detected_ring_color):
+    global flash_message, flash_start_time, saved_colors
+
     if detected_ring_color and detected_ring_color not in saved_colors:
         print(f"Detected Ring Color: {detected_ring_color}")
         with open("colors.txt", "a") as f:
@@ -147,7 +150,7 @@ while True:
             elif e.key == pygame.K_f:
                 me.flip_forward()
             elif e.key == pygame.K_p:
-                save_color_to_file(detected_ring_color, saved_colors)
+                save_color_to_file(detected_ring_color)
 
         elif e.type == pygame.KEYUP:
             if e.key == pygame.K_LSHIFT:
