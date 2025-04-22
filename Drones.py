@@ -49,7 +49,7 @@ def show_camera():
             "Yellow": [((21, 100, 100), (35, 255, 255))],
             "Green": [((40, 70, 70), (80, 255, 255))],
             "Blue": [((100, 150, 0), (140, 255, 255))],
-            "Purple": [((135, 80, 80), (160, 255, 255))]
+            "Purple": [((130, 50, 50), (170, 255, 255))] 
         }
 
         detected_ring_color = None
@@ -102,17 +102,16 @@ def show_camera():
     cv2.destroyAllWindows()
 
 # Save color
-def save_color_to_file(detected_ring_color):
-    global flash_message, flash_start_time, saved_colors
-
+def save_color_to_file(detected_ring_color, saved_colors):
+    global flash_message, flash_start_time
     if detected_ring_color and detected_ring_color not in saved_colors:
-        print(f"Detected Ring Color: {detected_ring_color}")
+        print(f"Detected Ring Color: {detected_ring_color}")  # Debug print to confirm color
         with open("colors.txt", "a") as f:
-            f.write(f"{detected_ring_color}\n")
-        saved_colors.add(detected_ring_color)
+            f.write(f"{detected_ring_color}\n")  # Write the color to the file
+        saved_colors.add(detected_ring_color)  # Add to the set of saved colors
 
-        flash_message = f"Color Saved: {detected_ring_color}"
-        flash_start_time = time.time()
+        flash_message = f"Color Saved: {detected_ring_color}"  # Set the flash message
+        flash_start_time = time.time()  # Update flash start time
 
 # Start Threads
 moving_thread = threading.Thread(target=moving)
@@ -122,6 +121,8 @@ moving_thread.start()
 camera_thread.start()
 
 # Main Control Loop
+saved_colors = set()  # Initialize an empty set to track saved colors
+
 while True:
     for e in pygame.event.get():
         if e.type == pygame.KEYDOWN:
@@ -150,7 +151,7 @@ while True:
             elif e.key == pygame.K_f:
                 me.flip_forward()
             elif e.key == pygame.K_p:
-                save_color_to_file(detected_ring_color)
+                save_color_to_file(detected_ring_color, saved_colors)  # Pass the saved_colors set
 
         elif e.type == pygame.KEYUP:
             if e.key == pygame.K_LSHIFT:
