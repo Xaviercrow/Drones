@@ -29,9 +29,10 @@ def moving():
 
 # Camera Function 
 def show_camera():
-    global running
-    detected_ring_color = None
+    global running, detected_ring_color, flash_message, flash_start_time
     saved_colors = set()
+    flash_message = ""
+    flash_start_time = 0
 
     while running:
         frame = me.get_frame_read().frame
@@ -40,9 +41,9 @@ def show_camera():
 
         # HSV Color Ranges
         color_ranges = {
-            "Red": [((0, 120, 70), (10, 255, 255)), ((170, 120, 70), (180, 255, 255))],
-            "Orange": [((10, 100, 100), (25, 255, 255))],
-            "Yellow": [((25, 100, 100), (35, 255, 255))],
+            "Red": [((0, 120, 70), (8, 255, 255)), ((172, 120, 70), (180, 255, 255))],
+            "Orange": [((9, 150, 150), (20, 255, 255))],
+            "Yellow": [((21, 120, 120), (35, 255, 255))],
             "Green": [((40, 70, 70), (80, 255, 255))],
             "Blue": [((100, 150, 0), (140, 255, 255))],
             "Purple": [((140, 100, 100), (160, 255, 255))]
@@ -58,31 +59,28 @@ def show_camera():
                 else:
                     mask |= cv2.inRange(hsv, lower, upper)
 
-            # Find contours in the mask to detect rings
             contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
             for cnt in contours:
                 area = cv2.contourArea(cnt)
-                if area > 1000:  # Ignore small contours
-                    detected_ring_color = color
-                    # Draw a bounding box around the detected color
+                if area > 3000:  
                     x, y, w, h = cv2.boundingRect(cnt)
-                    cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                    aspect_ratio = w / float(h)
 
-                    # Write the color name inside the bounding box
-                    cv2.putText(
-                        img,
-                        f"{detected_ring_color}",
-                        (x + 5, y - 5),
-                        cv2.FONT_HERSHEY_SIMPLEX,
-                        0.8,
-                        (255, 255, 255),
-                        2,
-                        cv2.LINE_AA
-                    )
-                    break  # Only show one color at a time
+                    if 0.5 < aspect_ratio < 2.0:
+                        detected_ring_color = color
+                        cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                        cv2.putText(img, f"{detected_ring_color}", (x + 5, y - 5),
+                                    cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
+                        break
 
-        # Show the camera feed
+        # Message
+        if flash_message and (time.time() - flash_start_time < 1.5):
+            cv2.putText(img, flash_message, (150, 50),
+                        cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 255, 0), 3)
+        else:
+            flash_message = ""
+
         cv2.imshow("Tello Camera", img)
 
         if cv2.waitKey(1) & 0xFF == ord('x'):
@@ -91,13 +89,17 @@ def show_camera():
 
     cv2.destroyAllWindows()
 
-# Keybind to save color to file
+# Save color
 def save_color_to_file(detected_ring_color, saved_colors):
+    global flash_message, flash_start_time
     if detected_ring_color and detected_ring_color not in saved_colors:
         print(f"Detected Ring Color: {detected_ring_color}")
         with open("colors.txt", "a") as f:
             f.write(f"{detected_ring_color}\n")
         saved_colors.add(detected_ring_color)
+
+        flash_message = f"Color Saved: {detected_ring_color}"
+        flash_start_time = time.time()
 
 # Start Threads
 moving_thread = threading.Thread(target=moving)
@@ -134,9 +136,7 @@ while True:
                 me.emergency()
             elif e.key == pygame.K_f:
                 me.flip_forward()
-
-            # Check for color save key (e.g., 'p' for save)
-            elif e.key == pygame.K_p:  # 'p' key to save the detected color
+            elif e.key == pygame.K_p:
                 save_color_to_file(detected_ring_color, saved_colors)
 
         elif e.type == pygame.KEYUP:
