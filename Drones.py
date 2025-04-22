@@ -15,6 +15,11 @@ forwardback = 0
 rotation = 0
 running = True
 
+# Variables
+detected_ring_color = None
+flash_message = ""
+flash_start_time = 0
+
 # Connect to Tello drone
 me = djitellopy.Tello()
 me.connect()
