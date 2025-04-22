@@ -35,26 +35,26 @@ def moving():
 # Camera Function 
 def show_camera():
     global running, detected_ring_color, flash_message, flash_start_time
-    saved_colors = set()
-    flash_message = ""
-    flash_start_time = 0
 
     while running:
         frame = me.get_frame_read().frame
         img = cv2.resize(frame, (600, 400))
-        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
-        # HSV Color Ranges
+        # Improved HSV ranges
         color_ranges = {
-            "Red": [((0, 120, 70), (8, 255, 255)), ((172, 120, 70), (180, 255, 255))],
-            "Orange": [((9, 150, 150), (20, 255, 255))],
-            "Yellow": [((21, 120, 120), (35, 255, 255))],
+            "Red": [((0, 100, 100), (10, 255, 255)), ((160, 100, 100), (180, 255, 255))],
+            "Orange": [((11, 140, 140), (20, 255, 255))],
+            "Yellow": [((21, 100, 100), (35, 255, 255))],
             "Green": [((40, 70, 70), (80, 255, 255))],
             "Blue": [((100, 150, 0), (140, 255, 255))],
-            "Purple": [((140, 100, 100), (160, 255, 255))]
+            "Purple": [((135, 80, 80), (160, 255, 255))]
         }
 
         detected_ring_color = None
+        mask_total = None
+        output = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        output = cv2.cvtColor(output, cv2.COLOR_GRAY2BGR)
 
         for color, ranges in color_ranges.items():
             mask = None
@@ -68,25 +68,30 @@ def show_camera():
 
             for cnt in contours:
                 area = cv2.contourArea(cnt)
-                if area > 3000:  
+                if area > 3000:
                     x, y, w, h = cv2.boundingRect(cnt)
                     aspect_ratio = w / float(h)
 
                     if 0.5 < aspect_ratio < 2.0:
                         detected_ring_color = color
-                        cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
-                        cv2.putText(img, f"{detected_ring_color}", (x + 5, y - 5),
+                        roi = cv2.bitwise_and(img, img, mask=mask)
+                        output = cv2.bitwise_or(output, roi)
+                        cv2.rectangle(output, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                        cv2.putText(output, f"{detected_ring_color}", (x + 5, y - 5),
                                     cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
                         break
+            if detected_ring_color:
+                break
 
-        # Message
-        if flash_message and (time.time() - flash_start_time < 1.5):
-            cv2.putText(img, flash_message, (150, 50),
-                        cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 255, 0), 3)
-        else:
-            flash_message = ""
+        # Flash overlay
+        if flash_message:
+            if flash_message and (time.time() - flash_start_time < 1.5):
+                cv2.putText(output, flash_message, (150, 50),
+                cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 255, 0), 3)
+            else:
+                    flash_message = ""
 
-        cv2.imshow("Tello Camera", img)
+        cv2.imshow("Tello Camera", output)
 
         if cv2.waitKey(1) & 0xFF == ord('x'):
             running = False
