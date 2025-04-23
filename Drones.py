@@ -45,7 +45,7 @@ def show_camera():
         # Improved HSV ranges
         color_ranges = {
             "Red": [((0, 100, 100), (10, 255, 255)), ((160, 100, 100), (180, 255, 255))],
-            "Orange": [((5, 100, 100), (17, 255, 255))],
+            "Orange": [((10, 150, 150), (25, 255, 255))],
             "Yellow": [((21, 100, 100), (35, 255, 255))],
             "Green": [((40, 70, 70), (80, 255, 255))],
             "Blue": [((100, 150, 0), (140, 255, 255))],
@@ -71,8 +71,6 @@ def show_camera():
 
                 if area > 3000:
                     x, y, w, h = cv2.boundingRect(cnt)
-                    hsv_val = hsv[y + h // 2, x + w // 2]
-                    print(f"Detected HSV for contour center: {hsv_val}")
                     aspect_ratio = w / float(h)
 
                     if 0.5 < aspect_ratio < 2.0:
