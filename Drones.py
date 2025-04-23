@@ -42,7 +42,7 @@ def show_camera():
         img = cv2.resize(frame, (600, 400))
         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
-        # Improved HSV ranges
+        # HSV ranges
         color_ranges = {
             "Red": [((0, 100, 100), (6, 255, 255)), ((170, 100, 100), (180, 255, 255))],
             "Orange": [((15, 50, 200), (25, 100, 255))],
@@ -74,17 +74,23 @@ def show_camera():
                     aspect_ratio = w / float(h)
 
                     if 0.5 < aspect_ratio < 2.0:
+                        # Correct: hsv sampled AFTER we have x, y, w, h
+                        hsv_val = hsv[y + h // 2, x + w // 2]
+                        h, s, v = hsv_val
+                        cv2.putText(output, f"HSV: {h}, {s}, {v}", (x + 5, y + h + 20),
+                                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 255), 2)
+
                         detected_ring_color = color
-                        muted = cv2.bitwise_and(output, output, mask=cv2.bitwise_not(mask))  # black & white
-                        highlight = cv2.bitwise_and(img, img, mask=mask)                      # color
-                        output = cv2.add(muted, highlight)  # Merge
+                        muted = cv2.bitwise_and(output, output, mask=cv2.bitwise_not(mask))
+                        highlight = cv2.bitwise_and(img, img, mask=mask)
+                        output = cv2.add(muted, highlight)
 
                         cv2.rectangle(output, (x, y), (x + w, y + h), (0, 255, 0), 2)
                         cv2.putText(output, f"{detected_ring_color}", (x + 5, y - 5),
                                     cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
                         break
-            if detected_ring_color:
-                break
+                if detected_ring_color:
+                    break
 
         # Flash overlay
         if flash_message:
