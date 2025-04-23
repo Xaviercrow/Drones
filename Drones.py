@@ -68,8 +68,11 @@ def show_camera():
 
             for cnt in contours:
                 area = cv2.contourArea(cnt)
+
                 if area > 3000:
                     x, y, w, h = cv2.boundingRect(cnt)
+                    hsv_val = hsv[y + h // 2, x + w // 2]
+                    print(f"Detected HSV for contour center: {hsv_val}")
                     aspect_ratio = w / float(h)
 
                     if 0.5 < aspect_ratio < 2.0:
@@ -107,11 +110,10 @@ def save_color_to_file(detected_ring_color, saved_colors):
     if detected_ring_color and detected_ring_color not in saved_colors:
         print(f"Detected Ring Color: {detected_ring_color}")  # Debug print to confirm color
         with open("colors.txt", "a") as f:
-            f.write(f"{detected_ring_color}\n")  # Write the color to the file
-        saved_colors.add(detected_ring_color)  # Add to the set of saved colors
-
-        flash_message = f"Color Saved: {detected_ring_color}"  # Set the flash message
-        flash_start_time = time.time()  # Update flash start time
+            f.write(f"{detected_ring_color}\n")
+        saved_colors.add(detected_ring_color)
+        flash_message = f"Color Saved: {detected_ring_color}"
+        flash_start_time = time.time()
 
 # Start Threads
 moving_thread = threading.Thread(target=moving)
@@ -121,7 +123,7 @@ moving_thread.start()
 camera_thread.start()
 
 # Main Control Loop
-saved_colors = set()  # Initialize an empty set to track saved colors
+saved_colors = set()
 
 while True:
     for e in pygame.event.get():
@@ -151,7 +153,7 @@ while True:
             elif e.key == pygame.K_f:
                 me.flip_forward()
             elif e.key == pygame.K_p:
-                save_color_to_file(detected_ring_color, saved_colors)  # Pass the saved_colors set
+                save_color_to_file(detected_ring_color, saved_colors)
 
         elif e.type == pygame.KEYUP:
             if e.key == pygame.K_LSHIFT:
